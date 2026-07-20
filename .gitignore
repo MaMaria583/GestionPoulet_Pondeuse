@@ -1,0 +1,63 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# secrets — filet de sécurité élargi.
+# Le motif « .env* » ci-dessus n'attrape QUE les noms commençant par « .env ».
+# Un fichier « env.txt », « credentials.txt » ou « neon.txt » passerait au travers.
+env.txt
+*env*.txt
+*credentials*
+*secret*
+*.key
+*.pem
+!src/**/*secret*.ts
+
+# réglages locaux de l'outillage (propres à chaque poste)
+.claude/settings.local.json
+
+# Migrations drizzle-kit : NON utilisées.
+# La source de vérité du schéma est docs/schema.sql (voir README).
+# Seuls drizzle/schema.ts et drizzle/relations.ts, générés par `npm run db:pull`,
+# sont versionnés — pour que le typecheck fonctionne sans accès à la base.
+/drizzle/*.sql
+/drizzle/meta/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

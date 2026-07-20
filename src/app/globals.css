@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/**
+ * Jetons de couleur.
+ *
+ * Accent ambre : couleur de l'œuf et de la volaille, et surtout distincte du
+ * rouge/orange des alertes — un accent orangé rendrait les alertes invisibles
+ * dans une interface qui en est déjà pleine.
+ */
+:root {
+  --fond: #faf9f7;
+  --surface: #ffffff;
+  --surface-2: #f4f2ee;
+  --bordure: #e5e1d9;
+  --texte: #1c1a17;
+  --texte-doux: #6b6558;
+  --accent: #b45309;
+  --accent-doux: #fef3c7;
+  --succes: #15803d;
+  --succes-doux: #dcfce7;
+  --alerte: #b91c1c;
+  --alerte-doux: #fee2e2;
+  --avertissement: #a16207;
+  --avertissement-doux: #fef9c3;
+  --info: #1d4ed8;
+  --info-doux: #dbeafe;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #14130f;
+    --surface: #1c1a17;
+    --surface-2: #26231e;
+    --bordure: #37322a;
+    --texte: #f0ede6;
+    --texte-doux: #a19a8b;
+    --accent: #f59e0b;
+    --accent-doux: #422006;
+    --succes: #4ade80;
+    --succes-doux: #052e16;
+    --alerte: #f87171;
+    --alerte-doux: #450a0a;
+    --avertissement: #fbbf24;
+    --avertissement-doux: #422006;
+    --info: #60a5fa;
+    --info-doux: #172554;
+  }
+}
+
+@theme inline {
+  --color-fond: var(--fond);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-bordure: var(--bordure);
+  --color-texte: var(--texte);
+  --color-texte-doux: var(--texte-doux);
+  --color-accent: var(--accent);
+  --color-accent-doux: var(--accent-doux);
+  --color-succes: var(--succes);
+  --color-succes-doux: var(--succes-doux);
+  --color-alerte: var(--alerte);
+  --color-alerte-doux: var(--alerte-doux);
+  --color-avertissement: var(--avertissement);
+  --color-avertissement-doux: var(--avertissement-doux);
+  --color-info: var(--info);
+  --color-info-doux: var(--info-doux);
+}
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Chiffres alignés en colonne : indispensable dans les tableaux de montants,
+   sinon les milliers ne se superposent pas d'une ligne à l'autre. */
+.chiffres {
+  font-variant-numeric: tabular-nums;
+}
