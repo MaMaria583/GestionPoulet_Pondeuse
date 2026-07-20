@@ -52,10 +52,10 @@ try {
     `SELECT routine_name FROM information_schema.routines
      WHERE routine_schema='public' AND routine_name LIKE 'fn_%' ORDER BY 1`,
   );
-  // 12 = fermes, users, tarifs_reference, bandes, mouvements_effectif, recoltes_oeufs,
+  // 13 = fermes, users, tarifs_reference, bandes, mouvements_effectif, recoltes_oeufs,
   //      sorties_oeufs, alimentations, modeles_prophylaxie, modeles_prophylaxie_lignes,
-  //      interventions_sante, depenses
-  verifier(`${tables.length} tables créées`, tables.length === 12, tables.map(t=>t.table_name).join(', '));
+  //      interventions_sante, depenses, journal_suppressions
+  verifier(`${tables.length} tables créées`, tables.length === 13, tables.map(t=>t.table_name).join(', '));
   verifier(`${vues.length} vues créées`, vues.length === 4, vues.map(v=>v.table_name).join(', '));
   verifier(`${fonctions.length} fonctions métier`, fonctions.length === 3, fonctions.map(f=>f.routine_name).join(', '));
 
@@ -115,6 +115,32 @@ try {
     `SELECT stock_actuel FROM v_bande_stock_oeufs WHERE bande_id = $1`, [bande.id],
   );
   verifier('vente de la totalité (400) ACCEPTÉE, stock à 0', Number(s2.stock_actuel) === 0, `obtenu ${s2.stock_actuel}`);
+
+  // ---------- Suppression d'une récolte déjà vendue ----------
+  console.log('\n[Règle : une récolte déjà vendue ne peut pas être retirée]');
+  const { rows: [rec] } = await client.query(
+    `SELECT id FROM recoltes_oeufs WHERE bande_id = $1 AND date_recolte = '2026-05-10'`,
+    [bande.id],
+  );
+  const errSuppr = await doitEchouer(`DELETE FROM recoltes_oeufs WHERE id = $1`, [rec.id]);
+  verifier('suppression de la récolte entièrement vendue REFUSÉE',
+    errSuppr !== null && /déjà sortis du stock/.test(errSuppr),
+    errSuppr ?? 'suppression acceptée — le stock serait négatif !');
+
+  const errBaisse = await doitEchouer(
+    `UPDATE recoltes_oeufs SET nombre_oeufs = 100 WHERE id = $1`, [rec.id],
+  );
+  verifier('révision à la baisse sous le stock sorti REFUSÉE',
+    errBaisse !== null, errBaisse ?? 'modification acceptée !');
+
+  // Une hausse reste évidemment possible
+  await client.query(`UPDATE recoltes_oeufs SET nombre_oeufs = 500 WHERE id = $1`, [rec.id]);
+  const { rows: [s3] } = await client.query(
+    `SELECT stock_actuel FROM v_bande_stock_oeufs WHERE bande_id = $1`, [bande.id],
+  );
+  verifier('révision à la hausse acceptée, stock à 100', Number(s3.stock_actuel) === 100,
+    `obtenu ${s3.stock_actuel}`);
+  await client.query(`UPDATE recoltes_oeufs SET nombre_oeufs = 400 WHERE id = $1`, [rec.id]);
 
   // ---------- Contrôle de l'effectif ----------
   console.log('\n[Règle : l’effectif ne peut pas devenir négatif]');
@@ -219,6 +245,37 @@ try {
      WHERE bande_id = $1 AND jour = '2026-05-09'`, [bande.id],
   );
   verifier('jour sans saisie : nb_saisies = 0', Number(a6.nb_saisies) === 0, `obtenu ${a6.nb_saisies}`);
+
+  // ---------- Journal des suppressions ----------
+  console.log('\n[Règle : toute suppression laisse une trace]');
+  const { rows: [dep] } = await client.query(
+    `INSERT INTO depenses (ferme_id, bande_id, date_depense, categorie, libelle, montant)
+     VALUES ($1, $2, '2026-03-01', 'transport', 'Livraison test', 12000) RETURNING id`,
+    [ferme.id, bande.id],
+  );
+
+  // Reproduit ce que fait l'action serveur : relire, supprimer, archiver.
+  const { rows: [avant] } = await client.query(
+    `SELECT to_jsonb(d) AS contenu FROM depenses d WHERE d.id = $1`, [dep.id],
+  );
+  await client.query(`DELETE FROM depenses WHERE id = $1`, [dep.id]);
+  await client.query(
+    `INSERT INTO journal_suppressions (ferme_id, table_source, ligne_id, contenu, supprime_par)
+     VALUES ($1, 'depenses', $2, $3::jsonb, NULL)`,
+    [ferme.id, dep.id, JSON.stringify(avant.contenu)],
+  );
+
+  const { rows: [trace] } = await client.query(
+    `SELECT table_source, contenu->>'libelle' AS libelle, contenu->>'montant' AS montant
+     FROM journal_suppressions WHERE ligne_id = $1`, [dep.id],
+  );
+  verifier('la ligne supprimée est archivée intégralement',
+    trace && trace.table_source === 'depenses' && trace.libelle === 'Livraison test'
+      && Number(trace.montant) === 12000,
+    JSON.stringify(trace));
+
+  const { rows: partie } = await client.query(`SELECT 1 FROM depenses WHERE id = $1`, [dep.id]);
+  verifier('la ligne a bien disparu de la table', partie.length === 0);
 
   // ---------- Cloisonnement entre fermes ----------
   console.log('\n[Règle : cloisonnement des exploitations]');

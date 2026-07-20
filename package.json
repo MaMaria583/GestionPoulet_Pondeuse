@@ -14,6 +14,7 @@
     "db:pull": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs pull",
     "db:studio": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs studio",
     "test": "vitest run",
+    "test:routes": "node --env-file=.env.local scripts/test-routes.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

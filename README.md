@@ -67,7 +67,13 @@ Elles sont appliquées **deux fois**, volontairement.
 | 1 alvéole = 30 œufs | `src/lib/domain/oeufs.ts` | œufs stockés en entier |
 | Vente ≤ stock disponible | `src/lib/domain/stock.ts` | trigger `check_stock_oeufs` |
 | Sortie ≤ effectif présent | `src/lib/domain/effectif.ts` | trigger `check_effectif` |
+| Récolte déjà vendue non retirable | — | trigger `check_retrait_recolte` |
 | Tarifs sans chevauchement | — | contrainte `EXCLUDE` |
+
+Le trigger `check_retrait_recolte` ferme une dissymétrie que la suppression a
+rendue atteignable : le contrôle de stock ne surveillait que les *sorties*.
+Récolter 400 œufs, les vendre, puis supprimer la récolte donnait un stock de
+−400 sans qu'aucune contrainte ne s'y oppose.
 
 La validation applicative donne un retour instantané dans le formulaire. Le
 trigger, lui, ne peut pas être contourné par un import, un script ou deux
@@ -136,13 +142,30 @@ chaque page protégée et de chaque action de saisie.
 Chaque action vérifie aussi que la bande visée appartient à la ferme de
 l'utilisateur : l'identifiant vient d'un champ de formulaire, donc du client.
 
+### Suppressions
+
+Supprimer une saisie modifie le stock, l'effectif ou la comptabilité. Chaque
+suppression archive la ligne complète (JSONB) dans `journal_suppressions`,
+avec son auteur.
+
+Pourquoi une suppression réelle plutôt que logique (`deleted_at`) : le stock et
+l'effectif sont calculés par des vues et des triggers qui agrègent **toutes**
+les lignes. Une suppression logique obligerait à filtrer dans chaque vue et
+chaque trigger — un seul oubli et le stock devient faux, silencieusement.
+La table reste donc propre et la trace vit à côté.
+
+Le nom de table transite par le formulaire : il est validé contre une liste
+blanche de requêtes littérales. Un identifiant SQL ne peut pas être un
+paramètre, donc l'interpoler ouvrirait une injection.
+
 ---
 
 ## Tests
 
 ```bash
-npm test          # 60 tests unitaires (domaine + hachage), aucune base requise
-npm run db:verify # 24 vérifications contre la vraie base, en transaction annulée
+npm test            # 60 tests unitaires (domaine + hachage), aucune base requise
+npm run db:verify   # 29 vérifications des règles, en transaction annulée
+npm run test:routes # 24 vérifications des routes et permissions (serveur démarré)
 npm run typecheck
 ```
 
@@ -153,8 +176,21 @@ npm run typecheck
 ```
 docs/schema.sql        source de vérité du schéma
 drizzle/               types générés — ne pas éditer
-scripts/               outillage base de données
+scripts/               outillage base de données et tests d'intégration
 src/lib/domain/        règles métier pures, testées
+src/lib/auth/          hachage, session, rôles
+src/lib/actions/       Server Actions (saisie, bandes, utilisateurs, suppressions)
+src/lib/queries/       lectures pour l'affichage
 src/db/                client Drizzle
-src/app/               interface Next.js
+src/proxy.ts           redirection des visiteurs non connectés
+src/app/               pages
 ```
+
+| Route | Contenu | Accès |
+|---|---|---|
+| `/` | Tableau de bord | tous |
+| `/saisie` | Récolte, sorties, dépense | `saisie` et plus |
+| `/historique` | Journal unifié, suppression | tous ; suppression dès `gestionnaire` |
+| `/bandes` | Liste, création, clôture | tous ; gestion dès `gestionnaire` |
+| `/utilisateurs` | Mon mot de passe ; comptes | tous ; comptes réservés au `proprietaire` |
+| `/connexion` | Authentification | public |

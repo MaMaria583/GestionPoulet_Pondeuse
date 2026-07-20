@@ -12,26 +12,28 @@ export function Navigation({
   return (
     <header className="border-b border-bordure bg-surface">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <nav className="flex items-center gap-1" aria-label="Navigation principale">
-          <Link
-            href="/"
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-texte-doux transition hover:bg-surface-2 hover:text-texte"
-          >
-            Tableau de bord
-          </Link>
-          <Link
-            href="/saisie"
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-texte-doux transition hover:bg-surface-2 hover:text-texte"
-          >
-            Saisie
-          </Link>
+        <nav className="flex items-center gap-1 overflow-x-auto" aria-label="Navigation principale">
+          {[
+            ['/', 'Tableau de bord'],
+            ['/saisie', 'Saisie'],
+            ['/historique', 'Historique'],
+            ['/bandes', 'Bandes'],
+          ].map(([href, libelle]) => (
+            <Link
+              key={href}
+              href={href}
+              className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-texte-doux transition hover:bg-surface-2 hover:text-texte"
+            >
+              {libelle}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium leading-tight">{nom}</p>
+          <Link href="/utilisateurs" className="hidden text-right sm:block">
+            <p className="text-sm font-medium leading-tight hover:underline">{nom}</p>
             <p className="text-xs text-texte-doux">{LIBELLES_ROLE[role]}</p>
-          </div>
+          </Link>
           <form action={deconnecter}>
             <button
               type="submit"

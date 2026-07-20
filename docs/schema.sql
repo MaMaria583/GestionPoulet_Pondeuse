@@ -376,6 +376,30 @@ CREATE TRIGGER check_depense_ferme
   BEFORE INSERT OR UPDATE ON depenses
   FOR EACH ROW EXECUTE FUNCTION trg_depense_meme_ferme();
 
+-- -------------------------------------------------------------
+-- 7 bis. JOURNAL DES SUPPRESSIONS
+--
+-- Supprimer une vente ou une récolte modifie l'historique comptable.
+-- On conserve la ligne supprimée telle quelle (JSONB), avec son auteur.
+--
+-- Pourquoi ce choix plutôt qu'une suppression logique (`deleted_at`) :
+-- le stock et l'effectif sont calculés par des vues et des triggers qui
+-- agrègent TOUTES les lignes. Une suppression logique obligerait à filtrer
+-- dans chaque vue et chaque trigger — un seul oubli et le stock est faux.
+-- Ici la table reste propre, et la trace vit à côté.
+-- -------------------------------------------------------------
+CREATE TABLE journal_suppressions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ferme_id      UUID NOT NULL REFERENCES fermes(id) ON DELETE CASCADE,
+  table_source  TEXT NOT NULL,
+  ligne_id      UUID NOT NULL,
+  contenu       JSONB NOT NULL,     -- la ligne complète, avant suppression
+  supprime_par  UUID REFERENCES users(id) ON DELETE SET NULL,
+  supprime_le   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_journal_suppr_ferme ON journal_suppressions (ferme_id, supprime_le DESC);
+
 -- =============================================================
 -- 8. LOGIQUE MÉTIER EN BASE (garde-fou ultime)
 -- =============================================================
@@ -441,6 +465,51 @@ $$;
 CREATE TRIGGER check_stock_oeufs
   BEFORE INSERT OR UPDATE ON sorties_oeufs
   FOR EACH ROW EXECUTE FUNCTION trg_verifier_stock_oeufs();
+
+-- 8.3 bis GARDE-FOU SYMÉTRIQUE : une récolte ne peut pas être supprimée ni
+--         revue à la baisse si ses œufs sont déjà sortis du stock.
+--
+--         Sans cela : récolter 400, vendre 400, supprimer la récolte
+--         → stock à −400, sans qu'aucune contrainte ne s'y oppose. Le
+--         trigger ci-dessus ne surveille que les sorties, pas les entrées.
+CREATE OR REPLACE FUNCTION trg_verifier_retrait_recolte()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  v_stock_restant INTEGER;
+  v_perte         INTEGER;
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended(OLD.bande_id::text, 0));
+
+  -- Nombre d'œufs que l'opération retire du stock
+  v_perte := (OLD.nombre_oeufs - OLD.oeufs_casses)
+           - CASE WHEN TG_OP = 'UPDATE'
+                  THEN (NEW.nombre_oeufs - NEW.oeufs_casses)
+                  ELSE 0 END;
+
+  IF v_perte <= 0 THEN
+    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+
+  SELECT COALESCE((SELECT SUM(r.nombre_oeufs - r.oeufs_casses) FROM recoltes_oeufs r
+                   WHERE r.bande_id = OLD.bande_id), 0)
+       - COALESCE((SELECT SUM(s.nombre_oeufs) FROM sorties_oeufs s
+                   WHERE s.bande_id = OLD.bande_id), 0)
+    INTO v_stock_restant;
+
+  IF v_stock_restant - v_perte < 0 THEN
+    RAISE EXCEPTION
+      'Modification impossible : ces % œufs sont déjà sortis du stock. Annulez d''abord les sorties correspondantes.',
+      v_perte
+      USING ERRCODE = 'check_violation';
+  END IF;
+
+  RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+END;
+$$;
+
+CREATE TRIGGER check_retrait_recolte
+  BEFORE DELETE OR UPDATE ON recoltes_oeufs
+  FOR EACH ROW EXECUTE FUNCTION trg_verifier_retrait_recolte();
 
 -- 8.4 GARDE-FOU : l'effectif ne peut pas devenir négatif
 CREATE OR REPLACE FUNCTION trg_verifier_effectif()
