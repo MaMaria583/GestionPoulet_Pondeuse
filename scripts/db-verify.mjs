@@ -88,6 +88,41 @@ try {
   );
   verifier('email malformé REFUSÉ', errMail !== null, errMail ?? 'accepté !');
 
+  // ---------- Inscription : création atomique ferme + propriétaire ----------
+  console.log('\n[Règle : une inscription ne laisse jamais de ferme orpheline]');
+  const CTE = `
+    WITH nouvelle_ferme AS (
+      INSERT INTO fermes (nom) VALUES ($1) RETURNING id
+    )
+    INSERT INTO users (ferme_id, email, nom_complet, password_hash, role)
+    SELECT nf.id, $2, $3, 'scrypt$65536$8$1$AAAAAAAAAAAAAAAA$AAAA', 'proprietaire'
+    FROM nouvelle_ferme nf
+    RETURNING id, ferme_id`;
+
+  const { rows: [inscrit] } = await client.query(CTE, [
+    'Ferme Inscrite', 'nouveau@example.ml', 'Nouveau Proprietaire',
+  ]);
+  verifier('inscription : ferme et compte créés ensemble',
+    inscrit && inscrit.id && inscrit.ferme_id);
+
+  const { rows: [role] } = await client.query(
+    `SELECT role FROM users WHERE id = $1`, [inscrit.id],
+  );
+  verifier('le premier compte est propriétaire', role.role === 'proprietaire', role.role);
+
+  // Même e-mail : l'insertion du compte échoue, donc la ferme ne doit pas exister
+  const nbFermesAvant = (await client.query(`SELECT count(*)::int AS n FROM fermes`)).rows[0].n;
+  const errDoublon = await doitEchouer(CTE, [
+    'Ferme Fantome', 'nouveau@example.ml', 'Doublon',
+  ]);
+  verifier('e-mail déjà pris : inscription REFUSÉE', errDoublon !== null,
+    errDoublon ?? 'doublon accepté !');
+
+  const nbFermesApres = (await client.query(`SELECT count(*)::int AS n FROM fermes`)).rows[0].n;
+  verifier('aucune ferme orpheline créée au passage',
+    nbFermesApres === nbFermesAvant,
+    `${nbFermesAvant} avant, ${nbFermesApres} après — la CTE n'est pas atomique !`);
+
   // ---------- Contrôle de stock d'œufs ----------
   console.log('\n[Règle : interdiction de vendre plus que le stock]');
   await client.query(

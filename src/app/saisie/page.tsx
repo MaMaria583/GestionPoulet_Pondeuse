@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { exigerUtilisateur } from '@/lib/auth';
 import { peutSaisir } from '@/lib/auth/roles';
 import { Navigation } from '@/components/Navigation';
@@ -29,12 +30,22 @@ export default async function PageSaisie() {
 
   if (!active) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-24 text-center">
-        <h1 className="text-lg font-semibold">Aucune bande active</h1>
-        <p className="mt-2 text-sm text-texte-doux">
-          Créez une bande avant de pouvoir saisir des données.
-        </p>
-      </main>
+      <>
+        <Navigation nom={session.nom} role={session.role} />
+        <main className="mx-auto max-w-lg px-6 py-20 text-center">
+          <h1 className="text-lg font-semibold tracking-tight">Aucune bande active</h1>
+          <p className="mt-2 text-sm text-texte-doux">
+            Une saisie se rattache toujours à une bande. Créez-en une pour commencer
+            à enregistrer récoltes, mortalités et ventes.
+          </p>
+          <Link
+            href="/bandes"
+            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            Créer une bande
+          </Link>
+        </main>
+      </>
     );
   }
 

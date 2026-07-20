@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { connecter } from '@/lib/auth';
 
@@ -81,6 +82,13 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
           >
             Se connecter
           </button>
+
+          <p className="mt-5 border-t border-bordure pt-4 text-center text-sm text-texte-doux">
+            Pas encore de compte ?{' '}
+            <Link href="/inscription" className="font-medium text-accent hover:underline">
+              Créer mon exploitation
+            </Link>
+          </p>
         </form>
       </div>
     </main>

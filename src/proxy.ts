@@ -15,7 +15,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const estPublique = pathname === '/connexion';
+  // Seules pages accessibles sans session : se connecter, ou créer un compte.
+  const PUBLIQUES = ['/connexion', '/inscription'];
+  const estPublique = PUBLIQUES.includes(pathname);
   const aCookie = request.cookies.has('session');
 
   if (!estPublique && !aCookie) {

@@ -117,6 +117,22 @@ la même journée.
 
 ## Authentification
 
+### Inscription
+
+`/inscription` crée une **exploitation et son compte propriétaire** en une fois.
+C'est le seul point d'entrée pour un visiteur sans compte ; les collaborateurs
+d'une ferme existante sont ensuite ajoutés depuis `/utilisateurs` par son
+propriétaire — sinon n'importe qui pourrait s'ajouter à une exploitation
+qui n'est pas la sienne.
+
+Les deux insertions passent par **une seule instruction SQL** (CTE modifiante).
+Le driver HTTP de Neon est sans état : il ne porte pas de transaction sur
+plusieurs requêtes. En deux instructions, un e-mail déjà pris ferait échouer la
+seconde et laisserait une exploitation orpheline, sans propriétaire et
+invisible. `db:verify` teste explicitement ce cas.
+
+### Session
+
 Session par JWT signé (HS256) dans un cookie `httpOnly`, `sameSite=lax`, durée 8 h.
 Mots de passe hachés avec **scrypt** (`node:crypto`), paramètres OWASP 2024,
 sel aléatoire par compte et comparaison à temps constant.
@@ -164,8 +180,8 @@ paramètre, donc l'interpoler ouvrirait une injection.
 
 ```bash
 npm test            # 60 tests unitaires (domaine + hachage), aucune base requise
-npm run db:verify   # 29 vérifications des règles, en transaction annulée
-npm run test:routes # 24 vérifications des routes et permissions (serveur démarré)
+npm run db:verify   # 33 vérifications des règles, en transaction annulée
+npm run test:routes # 29 vérifications des routes et permissions (serveur démarré)
 npm run typecheck
 ```
 
@@ -194,3 +210,4 @@ src/app/               pages
 | `/bandes` | Liste, création, clôture | tous ; gestion dès `gestionnaire` |
 | `/utilisateurs` | Mon mot de passe ; comptes | tous ; comptes réservés au `proprietaire` |
 | `/connexion` | Authentification | public |
+| `/inscription` | Créer une exploitation + son propriétaire | public |

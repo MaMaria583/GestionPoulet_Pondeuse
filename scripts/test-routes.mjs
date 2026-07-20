@@ -53,6 +53,19 @@ for (const r of ROUTES) {
 }
 const connexion = await get('/connexion');
 verifier('/connexion accessible sans session', connexion.status === 200, `statut ${connexion.status}`);
+const corpsConnexion = connexion.status === 200 ? await connexion.text() : '';
+verifier('/connexion propose de créer un compte',
+  corpsConnexion.includes('/inscription'),
+  'aucun lien vers l’inscription — un nouveau visiteur reste bloqué');
+
+const inscription = await get('/inscription');
+verifier('/inscription accessible sans session', inscription.status === 200,
+  `statut ${inscription.status}`);
+const corpsInscription = inscription.status === 200 ? await inscription.text() : '';
+verifier('/inscription demande ferme, nom, e-mail et mot de passe',
+  ['nomFerme', 'nomComplet', 'email', 'motDePasse', 'confirmation']
+    .every((c) => corpsInscription.includes(c)),
+  'un champ manque');
 
 console.log('\n[Propriétaire : accès complet]');
 const cookieProprio = await cookiePour('mariam.dembele@modenamali.com');
@@ -99,6 +112,12 @@ verifier('utilisateurs : changement de mot de passe accessible',
 verifier('utilisateurs : liste des comptes masquée',
   !corpsUtil.includes('Nouveau compte'),
   'la gestion des comptes est visible !');
+
+console.log('\n[Visiteur déjà connecté]');
+for (const r of ['/connexion', '/inscription']) {
+  const rep = await get(r, cookieProprio);
+  verifier(`${r} → renvoyé vers l’application`, rep.status === 307, `statut ${rep.status}`);
+}
 
 console.log('\n[Session invalide]');
 const faux = await get('/', 'session=jeton.completement.invalide');

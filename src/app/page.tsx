@@ -9,6 +9,7 @@ import { CartesKPI } from '@/components/CartesKPI';
 import { BandeauAlertes } from '@/components/BandeauAlertes';
 import { CourbePonte } from '@/components/CourbePonte';
 import { Carte, Etiquette, LigneRepartition } from '@/components/ui';
+import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
 import { exigerUtilisateur } from '@/lib/auth';
 import { formaterAge, formaterDate, formaterFCFA, formaterNombre } from '@/lib/format';
@@ -24,13 +25,23 @@ export default async function TableauDeBord() {
 
   if (bandes.length === 0) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-24 text-center">
-        <h1 className="text-xl font-semibold">Aucune bande enregistrée</h1>
-        <p className="mt-2 text-sm text-texte-doux">
-          Lancez <code className="rounded bg-surface-2 px-1.5 py-0.5">npm run db:seed</code> pour
-          charger le jeu de démonstration.
-        </p>
-      </main>
+      <>
+        <Navigation nom={session.nom} role={session.role} />
+        <main className="mx-auto max-w-lg px-6 py-20 text-center">
+          <h1 className="text-xl font-semibold tracking-tight">Bienvenue, {session.nom}</h1>
+          <p className="mt-2 text-sm text-texte-doux">
+            Votre exploitation est créée, mais elle ne contient encore aucune bande.
+            Tout le suivi — ponte, effectif, dépenses — s’organise autour d’une bande,
+            c’est-à-dire un lot de poules introduites le même jour.
+          </p>
+          <Link
+            href="/bandes"
+            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            Créer ma première bande
+          </Link>
+        </main>
+      </>
     );
   }
 
