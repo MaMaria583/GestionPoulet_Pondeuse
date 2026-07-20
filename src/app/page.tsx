@@ -9,6 +9,8 @@ import { CartesKPI } from '@/components/CartesKPI';
 import { BandeauAlertes } from '@/components/BandeauAlertes';
 import { CourbePonte } from '@/components/CourbePonte';
 import { Carte, Etiquette, LigneRepartition } from '@/components/ui';
+import { Navigation } from '@/components/Navigation';
+import { exigerUtilisateur } from '@/lib/auth';
 import { formaterAge, formaterDate, formaterFCFA, formaterNombre } from '@/lib/format';
 import { differenceJours } from '@/lib/domain/dates';
 
@@ -17,6 +19,7 @@ import { differenceJours } from '@/lib/domain/dates';
 export const dynamic = 'force-dynamic';
 
 export default async function TableauDeBord() {
+  const session = await exigerUtilisateur();
   const bandes = await listerBandes();
 
   if (bandes.length === 0) {
@@ -55,6 +58,8 @@ export default async function TableauDeBord() {
   ].filter((l) => l.valeur > 0);
 
   return (
+    <>
+    <Navigation nom={session.nom} role={session.role} />
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-10">
       {/* ---------- En-tête ---------- */}
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -245,5 +250,6 @@ export default async function TableauDeBord() {
         </div>
       </div>
     </main>
+    </>
   );
 }

@@ -12,10 +12,18 @@ Stack : Next.js 16 · React 19 · TypeScript · Tailwind 4 · Drizzle · Postgre
 
 ```bash
 npm install
-cp .env.example .env.local   # puis renseigner DATABASE_URL
+cp .env.example .env.local   # puis renseigner DATABASE_URL et AUTH_SECRET
 npm run db:push              # applique le schéma à la base
+npm run db:seed              # jeu de démonstration + comptes de test
 npm run dev
 ```
+
+Comptes créés par `db:seed` — **à supprimer avant toute mise en production** :
+
+| Compte | Rôle | Mot de passe |
+|---|---|---|
+| `mariam.dembele@modenamali.com` | Propriétaire | `demo-pondeuse-2026` |
+| `lecture@modenamali.com` | Lecture seule | `demo-pondeuse-2026` |
 
 > **Ne jamais committer `.env.local`.** Les secrets ne vivent que là et dans les
 > variables d'environnement de l'hébergeur — jamais dans un fichier `.txt`,
@@ -101,10 +109,39 @@ la même journée.
 
 ---
 
+## Authentification
+
+Session par JWT signé (HS256) dans un cookie `httpOnly`, `sameSite=lax`, durée 8 h.
+Mots de passe hachés avec **scrypt** (`node:crypto`), paramètres OWASP 2024,
+sel aléatoire par compte et comparaison à temps constant.
+
+Pas de dépendance native : Argon2id est le premier choix OWASP, mais ses
+implémentations Node sont des modules natifs dont la compilation casse
+régulièrement en déploiement serverless. scrypt est le second choix, également
+memory-hard, et livré avec Node.
+
+**Le contrôle d'accès repose sur les pages et les actions, pas sur `proxy.ts`.**
+Le proxy ne teste que la *présence* du cookie, pour éviter un aller-retour
+inutile. La vraie vérification — signature, compte toujours actif, rôle — a
+lieu dans `exigerUtilisateur()` et `exigerSaisie()`, appelées au début de
+chaque page protégée et de chaque action de saisie.
+
+| Rôle | Lecture | Saisie | Suppression | Utilisateurs |
+|---|:-:|:-:|:-:|:-:|
+| `proprietaire` | ✓ | ✓ | ✓ | ✓ |
+| `gestionnaire` | ✓ | ✓ | ✓ | — |
+| `saisie` | ✓ | ✓ | — | — |
+| `lecture` | ✓ | — | — | — |
+
+Chaque action vérifie aussi que la bande visée appartient à la ferme de
+l'utilisateur : l'identifiant vient d'un champ de formulaire, donc du client.
+
+---
+
 ## Tests
 
 ```bash
-npm test          # 52 tests unitaires du domaine (aucune base requise)
+npm test          # 60 tests unitaires (domaine + hachage), aucune base requise
 npm run db:verify # 24 vérifications contre la vraie base, en transaction annulée
 npm run typecheck
 ```

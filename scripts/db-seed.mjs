@@ -11,6 +11,27 @@
  *   - un épisode de contre-performance → déclenche l'alerte « baisse » à 80 %
  */
 import { Pool } from '@neondatabase/serverless';
+import { randomBytes, scrypt } from 'node:crypto';
+import { promisify } from 'node:util';
+
+const scryptAsync = promisify(scrypt);
+
+/**
+ * Reproduit le format de src/lib/auth/password.ts.
+ * Dupliqué ici volontairement : ce script est en .mjs et tourne hors du
+ * bundle Next, il ne peut pas importer un module TypeScript.
+ */
+async function hacher(motDePasse) {
+  const sel = randomBytes(16);
+  const cle = await scryptAsync(motDePasse.normalize('NFKC'), sel, 64, {
+    N: 65_536, r: 8, p: 1, maxmem: 144 * 1024 * 1024,
+  });
+  return ['scrypt', 65_536, 8, 1, sel.toString('base64url'), cle.toString('base64url')].join('$');
+}
+
+// Mot de passe de DÉMONSTRATION uniquement. À changer avant toute mise en
+// production : il est en clair dans un fichier versionné.
+const MOT_DE_PASSE_DEMO = 'demo-pondeuse-2026';
 
 const AUJOURDHUI = '2026-07-20';
 const DATE_INTRO = '2026-01-15';
@@ -52,9 +73,15 @@ try {
 
   await client.query(
     `INSERT INTO users (ferme_id, email, nom_complet, password_hash, role)
-     VALUES ($1, 'mariam.dembele@modenamali.com', 'Mariam Dembélé',
-             'PLACEHOLDER_A_REMPLACER_PAR_ARGON2ID', 'proprietaire')`,
-    [ferme.id],
+     VALUES ($1, 'mariam.dembele@modenamali.com', 'Mariam Dembélé', $2, 'proprietaire')`,
+    [ferme.id, await hacher(MOT_DE_PASSE_DEMO)],
+  );
+
+  // Second compte, pour vérifier que le rôle « lecture » bloque bien la saisie.
+  await client.query(
+    `INSERT INTO users (ferme_id, email, nom_complet, password_hash, role)
+     VALUES ($1, 'lecture@modenamali.com', 'Compte lecture seule', $2, 'lecture')`,
+    [ferme.id, await hacher(MOT_DE_PASSE_DEMO)],
   );
 
   // --- Tarifs de référence, historisés ---
@@ -270,6 +297,10 @@ try {
   console.log(`  Stock     : ${r.stock} œufs (${Math.floor(r.stock / 30)} alvéoles)`);
   console.log(`  Récoltes  : ${r.nb_recoltes} saisies`);
   console.log(`  Alertes   : ${r.nb_alertes} jours en alerte`);
+  console.log('');
+  console.log('  Comptes de démonstration :');
+  console.log(`    mariam.dembele@modenamali.com  (propriétaire)  ${MOT_DE_PASSE_DEMO}`);
+  console.log(`    lecture@modenamali.com         (lecture seule) ${MOT_DE_PASSE_DEMO}`);
 } catch (err) {
   await client.query('ROLLBACK').catch(() => {});
   console.error('✘', err.message);
