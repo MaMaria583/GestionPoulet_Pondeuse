@@ -7,8 +7,6 @@ import { hacherMotDePasse, LONGUEUR_MIN_MOT_DE_PASSE } from '@/lib/auth/password
 import { creerSession } from '@/lib/auth/session';
 import type { Retour } from './saisie';
 
-export type { Retour };
-
 /**
  * Inscription : crée une exploitation ET son compte propriétaire.
  *

@@ -3,7 +3,8 @@
 import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { inscrire, type Retour as TypeRetour } from '@/lib/actions/inscription';
+import { inscrire } from '@/lib/actions/inscription';
+import type { Retour as TypeRetour } from '@/lib/actions/saisie';
 import { Champ, Retour, Texte } from './saisie/champs';
 
 export function FormulaireInscription() {
