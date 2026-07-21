@@ -11,7 +11,9 @@ import { CourbePonte } from '@/components/CourbePonte';
 import { Carte, Etiquette, LigneRepartition } from '@/components/ui';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
+import { redirect } from 'next/navigation';
 import { exigerUtilisateur } from '@/lib/auth';
+import { accueilDuRole, peutVoirFinances } from '@/lib/auth/roles';
 import { formaterAge, formaterDate, formaterFCFA, formaterNombre } from '@/lib/format';
 import { differenceJours } from '@/lib/domain/dates';
 
@@ -21,6 +23,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function TableauDeBord() {
   const session = await exigerUtilisateur();
+
+  // Un compte de saisie n'a rien à faire sur un tableau de bord d'analyse :
+  // on l'envoie là où est son travail, le formulaire du jour.
+  const accueil = accueilDuRole(session.role);
+  if (accueil !== '/') redirect(accueil);
+
+  const voitFinances = peutVoirFinances(session.role);
   const bandes = await listerBandes(session.fermeId);
 
   if (bandes.length === 0) {
@@ -108,7 +117,7 @@ export default async function TableauDeBord() {
       </header>
 
       <div className="space-y-4">
-        <CartesKPI bande={bande} dernierJour={dernierJour} />
+        <CartesKPI bande={bande} dernierJour={dernierJour} voitFinances={voitFinances} />
 
         <BandeauAlertes points={production} />
 
@@ -207,6 +216,7 @@ export default async function TableauDeBord() {
         </div>
 
         {/* ---------- Synthèse financière ---------- */}
+        {voitFinances && (
         <div className="grid gap-4 lg:grid-cols-2">
           <Carte titre="Recettes et dépenses">
             <dl className="space-y-2.5 text-sm">
@@ -259,6 +269,7 @@ export default async function TableauDeBord() {
             ))}
           </Carte>
         </div>
+        )}
       </div>
     </main>
     </>

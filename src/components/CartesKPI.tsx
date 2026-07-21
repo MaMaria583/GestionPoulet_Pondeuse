@@ -105,15 +105,24 @@ function CarteKPI({
 export function CartesKPI({
   bande,
   dernierJour,
+  voitFinances = true,
 }: {
   bande: DetailBande;
   dernierJour: PointProduction | null;
+  /** Masque la carte « Résultat ». Voir `peutVoirFinances` dans roles.ts. */
+  voitFinances?: boolean;
 }) {
   const { alveoles, oeufsRestants } = oeufsEnAlveoles(bande.stock.actuel);
   const resultatPositif = bande.finances.resultat >= 0;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+    // Sans la carte « Résultat », la grille passe à 3 colonnes : garder 4
+    // laisserait un vide béant à droite, qui se lit comme un bogue.
+    <div
+      className={`grid grid-cols-2 gap-3 lg:gap-4 ${
+        voitFinances ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+      }`}
+    >
       <CarteKPI
         ton="neutre"
         icone={IconeEffectif}
@@ -161,6 +170,7 @@ export function CartesKPI({
         }
       />
 
+      {voitFinances && (
       <CarteKPI
         ton={resultatPositif ? 'succes' : 'alerte'}
         icone={IconeResultat}
@@ -176,6 +186,7 @@ export function CartesKPI({
           </Etiquette>
         }
       />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { exigerUtilisateur } from '@/lib/auth';
-import { peutSupprimer } from '@/lib/auth/roles';
+import { peutSupprimer, peutVoirFinances } from '@/lib/auth/roles';
 import { listerBandes } from '@/lib/queries/bande';
 import { chargerHistorique } from '@/lib/queries/historique';
 import { Navigation } from '@/components/Navigation';
@@ -36,6 +36,9 @@ export default async function PageHistorique() {
 
   const lignes = await chargerHistorique(active.id);
   const suppression = peutSupprimer(session.role);
+  // Même règle que sur le tableau de bord : masquer le résultat d'un côté et
+  // laisser les montants ligne à ligne de l'autre ne masquerait rien du tout.
+  const montants = peutVoirFinances(session.role);
 
   return (
     <>
@@ -75,7 +78,7 @@ export default async function PageHistorique() {
                   </p>
                 </div>
 
-                {l.montant != null && l.montant > 0 && (
+                {montants && l.montant != null && l.montant > 0 && (
                   <span className="chiffres shrink-0 text-sm font-medium">
                     {formaterFCFA(l.montant)}
                   </span>
