@@ -48,34 +48,39 @@
  * de contenu structure toute la page.
  */
 :root {
-  --rail: #14161e;
-  --rail-2: #1f2230;
-  --rail-bordure: #272b39;
-  --rail-encre: #9aa1b4;
+  --rail: #151824;
+  --rail-2: #232838;
+  --rail-bordure: #2a3042;
+  --rail-encre: #a3abc0;
   --rail-encre-fort: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fond: #101218;
-    --surface: #171a22;
-    --surface-2: #1f232d;
-    --bordure: #2b303c;
-    --texte: #eceef2;
-    --texte-doux: #98a0b0;
+    /* Bleu-ardoise plutôt que noir : le noir pur écrase les teintes posées
+       dessus et durcit le contraste avec le texte clair. Chaque niveau de
+       surface s'éclaircit franchement, sinon les cartes se noient dans le fond. */
+    --fond: #171a24;
+    --surface: #1e2230;
+    --surface-2: #272c3b;
+    --bordure: #333949;
+    --texte: #eef0f5;
+    --texte-doux: #a2aabd;
 
     --accent: #f5c542;
-    --accent-encre: #f5c542;
-    --accent-doux: #3a2e08;
+    --accent-encre: #f7cf63;
+    /* Ambre DÉSATURÉ vers le brun : un jaune sombre saturé sur une grande
+       surface tire au kaki. La teinte doit rester un fond, pas une couleur. */
+    --accent-doux: #33291a;
 
     --succes: #34d399;
-    --succes-doux: #0c2f24;
+    --succes-doux: #12332a;
     --alerte: #fb7185;
-    --alerte-doux: #3a1220;
+    --alerte-doux: #35202b;
     --avertissement: #fbbf24;
-    --avertissement-doux: #33260a;
+    --avertissement-doux: #33291a;
     --info: #7fa8fb;
-    --info-doux: #14213f;
+    --info-doux: #1c2740;
   }
 }
 
@@ -104,8 +109,28 @@
   --color-rail-encre-fort: var(--rail-encre-fort);
 }
 
+/**
+ * Profondeur du fond.
+ *
+ * Deux voiles très diffus — ambre en haut à gauche, bleu en haut à droite —
+ * posés sur la couleur de fond. Ils ne se lisent pas comme un dégradé : ils
+ * évitent seulement l'aplat mort d'une couleur unique sur tout un écran.
+ *
+ * Les opacités sont volontairement basses (4 à 8 %). Au-delà, la teinte
+ * commence à concurrencer celle des cartes, qui portent, elle, du sens.
+ * Le fond est attaché à la fenêtre : sur une longue page d'historique, un
+ * dégradé qui défile attire l'œil sur le vide.
+ */
 body {
+  /* Repli : `rgb(from …)` est récent. S'il n'est pas compris, la déclaration
+     suivante est invalidée en bloc et c'est celle-ci qui s'applique — sans
+     quoi la page se retrouverait sans fond du tout. */
   background: var(--fond);
+  background:
+    radial-gradient(80rem 40rem at 12% -8%, rgb(from var(--accent) r g b / 6%), transparent 60%),
+    radial-gradient(60rem 34rem at 96% -4%, rgb(from var(--info) r g b / 7%), transparent 55%),
+    var(--fond);
+  background-attachment: fixed;
   color: var(--texte);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
