@@ -11,6 +11,15 @@ import { NextResponse, type NextRequest } from 'next/server';
  * a lieu dans `exigerUtilisateur()`, côté page. Ce proxy n'est qu'un
  * raccourci d'expérience utilisateur : il évite d'afficher une page vide
  * avant redirection. Il ne constitue PAS la protection.
+ *
+ * COROLLAIRE, et il est vital : puisque ce fichier ne sait pas si un cookie
+ * est valide, il ne doit JAMAIS renvoyer quelqu'un HORS de `/connexion`. Un
+ * jeton expiré ou mal signé produirait sinon une boucle infinie — le proxy
+ * renvoie vers `/`, la page constate que la session est invalide et renvoie
+ * vers `/connexion`, indéfiniment (ERR_TOO_MANY_REDIRECTS). Comme un jeton
+ * expire au bout de 8 h, tout utilisateur revenant le lendemain tomberait
+ * dedans. La redirection « déjà connecté » vit donc dans la page de connexion,
+ * seule capable de vérifier réellement la session.
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -28,13 +37,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (estPublique && aCookie) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.search = '';
-    return NextResponse.redirect(url);
-  }
-
+  // Pas de redirection depuis les pages publiques : voir le corollaire ci-dessus.
   return NextResponse.next();
 }
 

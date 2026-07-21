@@ -1,8 +1,15 @@
+import { redirect } from 'next/navigation';
 import { FormulaireInscription } from '@/components/FormulaireInscription';
+import { utilisateurCourant } from '@/lib/auth';
 
 export const metadata = { title: 'Créer un compte · Gestion Poulet Pondeuse' };
 
-export default function PageInscription() {
+export default async function PageInscription() {
+  // Même raison que sur la page de connexion : seule une session vérifiée
+  // justifie de renvoyer vers l'accueil. Le proxy, lui, laisse toujours
+  // passer les pages publiques.
+  if (await utilisateurCourant()) redirect('/');
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">

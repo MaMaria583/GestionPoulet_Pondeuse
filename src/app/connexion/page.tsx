@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { connecter } from '@/lib/auth';
+import { connecter, utilisateurCourant } from '@/lib/auth';
 
 export const metadata = { title: 'Connexion · Gestion Poulet Pondeuse' };
 
 export default async function PageConnexion(props: PageProps<'/connexion'>) {
+  // Renvoi vers l'accueil des seules sessions RÉELLEMENT valides. Ce contrôle
+  // ne peut pas vivre dans le proxy, qui ne voit que la présence du cookie :
+  // un jeton expiré y déclencherait une boucle de redirection sans fin.
+  // Sans cookie, `utilisateurCourant()` sort avant toute requête en base.
+  if (await utilisateurCourant()) redirect('/');
+
   const params = await props.searchParams;
   const suite = typeof params.suite === 'string' ? params.suite : '/';
   const erreur = typeof params.erreur === 'string' ? params.erreur : null;
