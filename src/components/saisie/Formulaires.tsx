@@ -47,7 +47,7 @@ export function Formulaires({
             onClick={() => setOnglet(cle)}
             className={`shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition ${
               onglet === cle
-                ? 'border-accent text-accent'
+                ? 'border-accent text-accent-encre'
                 : 'border-transparent text-texte-doux hover:text-texte'
             }`}
           >

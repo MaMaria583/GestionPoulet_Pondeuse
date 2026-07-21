@@ -33,7 +33,7 @@ export function CreationUtilisateur() {
     return (
       <button
         onClick={() => setOuvert(true)}
-        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-[#14161e] transition hover:opacity-90"
       >
         Nouveau compte
       </button>
@@ -71,7 +71,7 @@ export function CreationUtilisateur() {
           <button
             type="submit"
             disabled={enCours}
-            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90 disabled:opacity-50"
           >
             {enCours ? 'Création…' : 'Créer le compte'}
           </button>
@@ -194,7 +194,7 @@ export function ChangementMotDePasse() {
         <button
           type="submit"
           disabled={enCours}
-          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90 disabled:opacity-50"
         >
           {enCours ? 'Modification…' : 'Modifier'}
         </button>

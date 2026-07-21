@@ -12,9 +12,9 @@ export function Carte({
   className?: string;
 }) {
   return (
-    <section className={`rounded-xl border border-bordure bg-surface p-5 ${className}`}>
+    <section className={`rounded-2xl border border-bordure bg-surface p-5 ${className}`}>
       {titre && (
-        <header className="mb-4 flex items-center justify-between gap-3">
+        <header className="mb-4 flex items-center justify-between gap-3 border-b border-bordure pb-3">
           <h2 className="text-sm font-semibold tracking-tight">{titre}</h2>
           {action}
         </header>
@@ -37,7 +37,7 @@ export function Etiquette({
     alerte: 'bg-alerte-doux text-alerte',
     avertissement: 'bg-avertissement-doux text-avertissement',
     info: 'bg-info-doux text-info',
-    accent: 'bg-accent-doux text-accent',
+    accent: 'bg-accent-doux text-accent-encre',
   } as const;
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${tons[ton]}`}>

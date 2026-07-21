@@ -36,7 +36,7 @@ export default async function TableauDeBord() {
           </p>
           <Link
             href="/bandes"
-            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90"
           >
             Créer ma première bande
           </Link>
@@ -96,7 +96,7 @@ export default async function TableauDeBord() {
                 key={b.id}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
                   b.id === bande.id
-                    ? 'border-accent bg-accent-doux text-accent'
+                    ? 'border-accent bg-accent-doux text-accent-encre'
                     : 'border-bordure text-texte-doux'
                 }`}
               >

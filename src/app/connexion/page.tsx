@@ -78,14 +78,14 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90"
           >
             Se connecter
           </button>
 
           <p className="mt-5 border-t border-bordure pt-4 text-center text-sm text-texte-doux">
             Pas encore de compte ?{' '}
-            <Link href="/inscription" className="font-medium text-accent hover:underline">
+            <Link href="/inscription" className="font-medium text-accent-encre hover:underline">
               Créer mon exploitation
             </Link>
           </p>

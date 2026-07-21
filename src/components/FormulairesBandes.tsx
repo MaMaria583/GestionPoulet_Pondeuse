@@ -22,7 +22,7 @@ export function FormulaireCreationBande({ aujourdhui }: { aujourdhui: string }) 
     return (
       <button
         onClick={() => setOuvert(true)}
-        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-[#14161e] transition hover:opacity-90"
       >
         Nouvelle bande
       </button>
@@ -73,7 +73,7 @@ export function FormulaireCreationBande({ aujourdhui }: { aujourdhui: string }) 
           <button
             type="submit"
             disabled={enCours}
-            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90 disabled:opacity-50"
           >
             {enCours ? 'Création…' : 'Créer la bande'}
           </button>
@@ -141,7 +141,7 @@ export function ActionsBande({
             <button
               type="submit"
               disabled={modifEnCours}
-              className={`${bouton} bg-accent text-white`}
+              className={`${bouton} bg-accent text-[#14161e]`}
             >
               {modifEnCours ? 'Enregistrement…' : 'Enregistrer'}
             </button>

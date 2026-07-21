@@ -6,44 +6,76 @@
  * Accent ambre : couleur de l'œuf et de la volaille, et surtout distincte du
  * rouge/orange des alertes — un accent orangé rendrait les alertes invisibles
  * dans une interface qui en est déjà pleine.
+ *
+ * L'ambre existe en DEUX jetons, et ce n'est pas un doublon :
+ *   --accent       ambre vif, réservé aux APLATS (bouton plein, onglet actif).
+ *                  Trop clair pour du texte sur fond blanc.
+ *   --accent-encre ambre sombre, réservé au TEXTE et aux icônes sur fond clair.
+ * Les confondre donne soit un bouton terne, soit un texte illisible.
+ *
+ * Les couleurs d'état ont été validées en mode clair — bande de clarté,
+ * plancher de chroma, séparation daltonienne, contraste : tout est conforme.
+ * En mode sombre le couple vert/rouge reste sous le seuil deutéranope. C'est
+ * acceptable ICI parce qu'aucune de ces couleurs ne porte seule le sens :
+ * chaque carte affiche aussi une icône et un libellé écrit. Ne jamais s'en
+ * servir comme unique signal.
  */
 :root {
-  --fond: #faf9f7;
+  --fond: #f7f6f2;
   --surface: #ffffff;
-  --surface-2: #f4f2ee;
-  --bordure: #e5e1d9;
-  --texte: #1c1a17;
-  --texte-doux: #6b6558;
-  --accent: #b45309;
-  --accent-doux: #fef3c7;
-  --succes: #15803d;
-  --succes-doux: #dcfce7;
-  --alerte: #b91c1c;
-  --alerte-doux: #fee2e2;
-  --avertissement: #a16207;
-  --avertissement-doux: #fef9c3;
-  --info: #1d4ed8;
-  --info-doux: #dbeafe;
+  --surface-2: #f2efe8;
+  --bordure: #e6e1d6;
+  --texte: #16140f;
+  --texte-doux: #6d6658;
+
+  --accent: #f2b705;
+  --accent-encre: #8a5a00;
+  --accent-doux: #fdf2cf;
+
+  --succes: #0e9f6e;
+  --succes-doux: #e2f7ee;
+  --alerte: #be123c;
+  --alerte-doux: #fdeaef;
+  --avertissement: #8a5a00;
+  --avertissement-doux: #fdf2cf;
+  --info: #2159c4;
+  --info-doux: #e7eefb;
+}
+
+/**
+ * La barre latérale garde ses couleurs sombres dans les deux thèmes.
+ * C'est délibéré : elle sert de repère fixe, et son contraste avec la zone
+ * de contenu structure toute la page.
+ */
+:root {
+  --rail: #14161e;
+  --rail-2: #1f2230;
+  --rail-bordure: #272b39;
+  --rail-encre: #9aa1b4;
+  --rail-encre-fort: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fond: #14130f;
-    --surface: #1c1a17;
-    --surface-2: #26231e;
-    --bordure: #37322a;
-    --texte: #f0ede6;
-    --texte-doux: #a19a8b;
-    --accent: #f59e0b;
-    --accent-doux: #422006;
-    --succes: #4ade80;
-    --succes-doux: #052e16;
-    --alerte: #f87171;
-    --alerte-doux: #450a0a;
+    --fond: #101218;
+    --surface: #171a22;
+    --surface-2: #1f232d;
+    --bordure: #2b303c;
+    --texte: #eceef2;
+    --texte-doux: #98a0b0;
+
+    --accent: #f5c542;
+    --accent-encre: #f5c542;
+    --accent-doux: #3a2e08;
+
+    --succes: #34d399;
+    --succes-doux: #0c2f24;
+    --alerte: #fb7185;
+    --alerte-doux: #3a1220;
     --avertissement: #fbbf24;
-    --avertissement-doux: #422006;
-    --info: #60a5fa;
-    --info-doux: #172554;
+    --avertissement-doux: #33260a;
+    --info: #7fa8fb;
+    --info-doux: #14213f;
   }
 }
 
@@ -55,6 +87,7 @@
   --color-texte: var(--texte);
   --color-texte-doux: var(--texte-doux);
   --color-accent: var(--accent);
+  --color-accent-encre: var(--accent-encre);
   --color-accent-doux: var(--accent-doux);
   --color-succes: var(--succes);
   --color-succes-doux: var(--succes-doux);
@@ -64,6 +97,11 @@
   --color-avertissement-doux: var(--avertissement-doux);
   --color-info: var(--info);
   --color-info-doux: var(--info-doux);
+  --color-rail: var(--rail);
+  --color-rail-2: var(--rail-2);
+  --color-rail-bordure: var(--rail-bordure);
+  --color-rail-encre: var(--rail-encre);
+  --color-rail-encre-fort: var(--rail-encre-fort);
 }
 
 body {
@@ -77,4 +115,19 @@ body {
    sinon les milliers ne se superposent pas d'une ligne à l'autre. */
 .chiffres {
   font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Décalage du contenu quand la barre latérale est présente.
+ *
+ * La barre est en `position: fixed`, elle ne pousse donc rien d'elle-même.
+ * Plutôt que d'ajouter une classe de décalage dans chacune des cinq pages —
+ * et de l'oublier sur la sixième — on cible le `main` seulement quand le rail
+ * existe dans la page. Les pages publiques (connexion, inscription) n'en ont
+ * pas et restent centrées, sans exception à écrire.
+ */
+@media (min-width: 1024px) {
+  body:has([data-rail]) main {
+    padding-left: 16rem;
+  }
 }

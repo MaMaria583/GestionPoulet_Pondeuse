@@ -40,7 +40,7 @@ export default async function PageSaisie() {
           </p>
           <Link
             href="/bandes"
-            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            className="mt-6 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-[#14161e] transition hover:opacity-90"
           >
             Créer une bande
           </Link>
