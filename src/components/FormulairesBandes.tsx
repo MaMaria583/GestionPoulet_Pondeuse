@@ -6,8 +6,8 @@ import {
   creerBande,
   modifierBande,
   rouvrirBande,
-  type Retour as TypeRetour,
 } from '@/lib/actions/bandes';
+import type { Retour as TypeRetour } from '@/lib/actions/saisie';
 import { Champ, Retour, Selection, Texte } from './saisie/champs';
 import type { ResumeBande } from '@/lib/queries/bande';
 

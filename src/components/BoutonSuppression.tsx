@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { supprimerLigne, type Retour as TypeRetour } from '@/lib/actions/suppressions';
+import { supprimerLigne } from '@/lib/actions/suppressions';
+import type { Retour as TypeRetour } from '@/lib/actions/saisie';
 import type { LigneHistorique } from '@/lib/queries/historique';
 
 /**

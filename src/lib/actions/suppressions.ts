@@ -7,8 +7,6 @@ import { exigerUtilisateur } from '@/lib/auth';
 import { peutSupprimer } from '@/lib/auth/roles';
 import type { Retour } from './saisie';
 
-export type { Retour };
-
 /**
  * Suppression d'une ligne de saisie, avec trace.
  *

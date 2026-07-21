@@ -6,8 +6,8 @@ import {
   changerMonMotDePasse,
   changerRole,
   creerUtilisateur,
-  type Retour as TypeRetour,
 } from '@/lib/actions/utilisateurs';
+import type { Retour as TypeRetour } from '@/lib/actions/saisie';
 import { Champ, Retour, Selection, Texte } from './saisie/champs';
 import { Etiquette } from './ui';
 import { LIBELLES_ROLE, type role_utilisateur } from '@/lib/auth/roles';

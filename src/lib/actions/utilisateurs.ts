@@ -9,8 +9,6 @@ import { hacherMotDePasse, verifierMotDePasse, LONGUEUR_MIN_MOT_DE_PASSE } from 
 import { peutGererUtilisateurs } from '@/lib/auth/roles';
 import type { Retour } from './saisie';
 
-export type { Retour };
-
 async function exigerGestionUtilisateurs() {
   const session = await exigerUtilisateur();
   if (!peutGererUtilisateurs(session.role)) {

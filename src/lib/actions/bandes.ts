@@ -9,8 +9,6 @@ import { peutGererBandes } from '@/lib/auth/roles';
 import { estDateISO } from '@/lib/domain/dates';
 import type { Retour } from './saisie';
 
-export type { Retour };
-
 const dateISO = z.string().refine(estDateISO, 'Date invalide (format attendu : AAAA-MM-JJ)');
 
 async function exigerGestionBandes() {
