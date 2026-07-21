@@ -8,6 +8,16 @@ import type { DateISO } from '@/lib/domain/types';
  * Les agrégats sont calculés PAR LA BASE, via les vues de docs/schema.sql.
  * Rapatrier les lignes pour les additionner en TypeScript ferait transiter
  * des milliers d'enregistrements et dupliquerait une logique déjà écrite.
+ *
+ * CLOISONNEMENT — `fermeId` est un paramètre OBLIGATOIRE, jamais optionnel et
+ * jamais déduit à l'intérieur. Le compilateur refuse ainsi tout appel qui
+ * l'oublierait, au lieu de laisser passer une requête sans filtre.
+ *
+ * Ces fonctions ont longtemps lu la table entière : n'importe quel compte
+ * voyait les bandes, les finances et l'historique de TOUTES les exploitations,
+ * l'inscription étant ouverte à tous. Le contrôle n'existait qu'en écriture,
+ * via `exigerBandeDeLaFerme()`. Ne jamais rétablir une lecture non filtrée,
+ * même « temporairement » pour déboguer.
  */
 
 /** Les colonnes NUMERIC reviennent en `string` : conversion explicite, jamais implicite. */
@@ -28,10 +38,11 @@ export interface ResumeBande {
   effectifInitial: number;
 }
 
-export async function listerBandes(): Promise<ResumeBande[]> {
+export async function listerBandes(fermeId: string): Promise<ResumeBande[]> {
   const { rows } = await db.execute(sql`
     SELECT id, code, nom, souche, statut, date_introduction, date_debut_ponte, effectif_initial
     FROM bandes
+    WHERE ferme_id = ${fermeId}
     ORDER BY statut, date_introduction DESC
   `);
   return rows.map((r) => ({
@@ -75,7 +86,10 @@ export interface DetailBande extends ResumeBande {
   };
 }
 
-export async function chargerBande(bandeId: string): Promise<DetailBande | null> {
+export async function chargerBande(
+  bandeId: string,
+  fermeId: string,
+): Promise<DetailBande | null> {
   const { rows } = await db.execute(sql`
     SELECT b.id, b.code, b.nom, b.souche, b.statut, b.date_introduction,
            b.date_debut_ponte, b.effectif_initial,
@@ -90,7 +104,7 @@ export async function chargerBande(bandeId: string): Promise<DetailBande | null>
     JOIN v_bande_effectif    e ON e.bande_id = b.id
     JOIN v_bande_stock_oeufs s ON s.bande_id = b.id
     JOIN v_bande_finances    f ON f.bande_id = b.id
-    WHERE b.id = ${bandeId}
+    WHERE b.id = ${bandeId} AND b.ferme_id = ${fermeId}
   `);
 
   const r = rows[0];

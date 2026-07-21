@@ -25,7 +25,7 @@ export default async function PageSaisie() {
     );
   }
 
-  const bandes = await listerBandes();
+  const bandes = await listerBandes(session.fermeId);
   const active = bandes.find((b) => b.statut === 'active') ?? bandes[0];
 
   if (!active) {
@@ -49,7 +49,7 @@ export default async function PageSaisie() {
     );
   }
 
-  const bande = await chargerBande(active.id);
+  const bande = await chargerBande(active.id, session.fermeId);
   if (!bande) return null;
 
   // La date « du jour » vient du serveur : se fier à l'horloge du navigateur

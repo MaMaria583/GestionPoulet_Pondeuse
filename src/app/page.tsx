@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function TableauDeBord() {
   const session = await exigerUtilisateur();
-  const bandes = await listerBandes();
+  const bandes = await listerBandes(session.fermeId);
 
   if (bandes.length === 0) {
     return (
@@ -47,7 +47,7 @@ export default async function TableauDeBord() {
 
   const bandeCourante = bandes.find((b) => b.statut === 'active') ?? bandes[0];
   const [bande, production, interventions, depenses] = await Promise.all([
-    chargerBande(bandeCourante.id),
+    chargerBande(bandeCourante.id, session.fermeId),
     chargerProduction(bandeCourante.id),
     chargerProchainesInterventions(bandeCourante.id),
     chargerRepartitionDepenses(bandeCourante.id),

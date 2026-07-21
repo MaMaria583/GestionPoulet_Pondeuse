@@ -20,7 +20,7 @@ const TONS = {
 
 export default async function PageHistorique() {
   const session = await exigerUtilisateur();
-  const bandes = await listerBandes();
+  const bandes = await listerBandes(session.fermeId);
   const active = bandes.find((b) => b.statut === 'active') ?? bandes[0];
 
   if (!active) {

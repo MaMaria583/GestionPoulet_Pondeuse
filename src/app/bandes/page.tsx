@@ -12,11 +12,11 @@ export const metadata = { title: 'Bandes · Gestion Poulet Pondeuse' };
 
 export default async function PageBandes() {
   const session = await exigerUtilisateur();
-  const bandes = await listerBandes();
+  const bandes = await listerBandes(session.fermeId);
   const gestion = peutGererBandes(session.role);
   const aujourdhui = new Date().toISOString().slice(0, 10);
 
-  const details = await Promise.all(bandes.map((b) => chargerBande(b.id)));
+  const details = await Promise.all(bandes.map((b) => chargerBande(b.id, session.fermeId)));
 
   return (
     <>
